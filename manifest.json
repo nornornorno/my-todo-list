@@ -1,0 +1,9 @@
+manifest.json
+{
+  "name": "HOUDA'S PLANNER",
+  "short_name": "HOUDA'S PLANNER",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#9b62ad"
+}
