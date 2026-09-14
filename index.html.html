@@ -1,8 +1,10 @@
-
+index.html
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#9b62ad">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -611,7 +613,13 @@ taskInput.addEventListener(
 updateEmptyMessage();
 
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js");
+    });
+}
+</script>
 </body>
 
 </html>
