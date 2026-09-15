@@ -1,9 +1,0 @@
-{
-  "name":"HOUDA'S PLANNER",
-  "short_name":"HOUDA'S PLANNER",
-  "id":"./",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#f8d9de",
-  "theme_color":"#e98fa8"
-}
