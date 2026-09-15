@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#e98fa8">
+  <link rel="manifest" href="manifest.json">
+  <title>TO-DO LIST</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      background: #f9d8dc;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 18px;
+    }
+
+    /* ONE background only */
+    .planner {
+      position: relative;
+      width: min(100%, 760px);
+      aspect-ratio: 736 / 1104;
+      background-image: url("planner-bg.jpg");
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    /* Everything below is placed directly ON the background. */
+    .date-area {
+      position: absolute;
+      left: 13.5%;
+      right: 13.5%;
+      top: 28.7%;
+      height: 6%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .date-input {
+      width: 38%;
+      min-width: 150px;
+      border: 2px solid #efb0b8;
+      border-radius: 12px;
+      background: rgba(255, 249, 246, 0.88);
+      color: #76503f;
+      padding: 7px 10px;
+      font-size: clamp(12px, 2.2vw, 17px);
+      outline: none;
+      text-align: center;
+    }
+
+    .add-area {
+      position: absolute;
+      left: 13.5%;
+      right: 13.5%;
+      top: 34.1%;
+      height: 6%;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .task-input {
+      flex: 1;
+      max-width: 500px;
+      border: 2px solid #efb0b8;
+      border-radius: 12px;
+      background: rgba(255, 249, 246, 0.9);
+      color: #76503f;
+      padding: 8px 12px;
+      font-size: clamp(12px, 2.2vw, 17px);
+      outline: none;
+    }
+
+    .add-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 0 18px;
+      background: #e98fa8;
+      color: white;
+      font-weight: bold;
+      font-size: clamp(12px, 2vw, 16px);
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(130, 70, 80, .18);
+    }
+
+    .add-btn:active { transform: scale(.97); }
+
+    .tasks {
+      position: absolute;
+      left: 13.5%;
+      right: 13.5%;
+      top: 39.6%;
+      bottom: 10.8%;
+      display: grid;
+      grid-template-rows: repeat(9, 1fr);
+      gap: 0;
+    }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      padding-left: 5%;
+      padding-right: 2%;
+    }
+
+    .check {
+      width: clamp(22px, 4vw, 32px);
+      height: clamp(22px, 4vw, 32px);
+      flex: 0 0 auto;
+      accent-color: #e58ba5;
+      cursor: pointer;
+    }
+
+    .task-text {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      border-bottom: 1px dashed rgba(228, 158, 168, .45);
+      background: rgba(255, 249, 246, .58);
+      color: #6f4b3b;
+      padding: 4px 6px;
+      font-size: clamp(11px, 2.1vw, 16px);
+      outline: none;
+      border-radius: 5px;
+    }
+
+    .task-text:focus {
+      background: rgba(255, 249, 246, .9);
+      border-bottom-color: #e58ba5;
+    }
+
+    .delete-btn {
+      border: 0;
+      background: rgba(255, 249, 246, .72);
+      color: #c77988;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+    }
+
+    .completed .task-text {
+      text-decoration: line-through;
+      opacity: .55;
+    }
+
+    .message {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(20px);
+      background: #e98fa8;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s;
+      font-size: 14px;
+      box-shadow: 0 5px 18px rgba(100, 50, 60, .2);
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 6px; }
+      .add-area { gap: 5px; }
+      .add-btn { padding: 0 10px; }
+      .tasks { left: 13%; right: 13%; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="planner">
+
+    <div class="date-area">
+      <input id="dateInput" class="date-input" type="date" aria-label="Choose date">
+    </div>
+
+    <div class="add-area">
+      <input id="taskInput" class="task-input" type="text"
+             placeholder="Write a task..." maxlength="70">
+      <button class="add-btn" id="addBtn">Add</button>
+    </div>
+
+    <section class="tasks" id="tasks"></section>
+
+  </main>
+
+  <div class="message" id="message">Task completed</div>
+
+  <script>
+    const STORAGE_KEY = "houdaPlannerTasks";
+    const DATE_KEY = "houdaPlannerDate";
+    const MAX_TASKS = 9;
+
+    const tasksEl = document.getElementById("tasks");
+    const taskInput = document.getElementById("taskInput");
+    const addBtn = document.getElementById("addBtn");
+    const dateInput = document.getElementById("dateInput");
+    const message = document.getElementById("message");
+
+    let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+    dateInput.value = localStorage.getItem(DATE_KEY) ||
+      new Date().toISOString().split("T")[0];
+
+    dateInput.addEventListener("change", () => {
+      localStorage.setItem(DATE_KEY, dateInput.value);
+      save();
+    });
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function render() {
+      tasksEl.innerHTML = "";
+
+      for (let i = 0; i < MAX_TASKS; i++) {
+        const task = tasks[i] || { text: "", done: false };
+
+        const row = document.createElement("div");
+        row.className = "task-row" + (task.done ? " completed" : "");
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "check";
+        check.checked = task.done;
+
+        const text = document.createElement("input");
+        text.type = "text";
+        text.className = "task-text";
+        text.placeholder = "";
+        text.value = task.text;
+        text.maxLength = 70;
+
+        const del = document.createElement("button");
+        del.className = "delete-btn";
+        del.type = "button";
+        del.textContent = "×";
+        del.title = "Delete task";
+
+        check.addEventListener("change", () => {
+          if (!tasks[i]) tasks[i] = { text: text.value, done: false };
+          tasks[i].text = text.value;
+          tasks[i].done = check.checked;
+          save();
+          render();
+
+          if (check.checked) {
+            showMessage("Task completed");
+          }
+        });
+
+        text.addEventListener("input", () => {
+          if (!tasks[i]) tasks[i] = { text: "", done: false };
+          tasks[i].text = text.value;
+          save();
+        });
+
+        del.addEventListener("click", () => {
+          tasks.splice(i, 1);
+          save();
+          render();
+        });
+
+        row.append(check, text, del);
+        tasksEl.appendChild(row);
+      }
+    }
+
+    function addTask() {
+      const text = taskInput.value.trim();
+      if (!text) return;
+
+      if (tasks.length >= MAX_TASKS) {
+        showMessage("All 9 spaces are full");
+        return;
+      }
+
+      tasks.push({ text, done: false });
+      taskInput.value = "";
+      save();
+      render();
+      taskInput.focus();
+    }
+
+    addBtn.addEventListener("click", addTask);
+
+    taskInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") addTask();
+    });
+
+    function showMessage(text) {
+      message.textContent = text;
+      message.classList.add("show");
+      setTimeout(() => message.classList.remove("show"), 1300);
+    }
+
+    render();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
