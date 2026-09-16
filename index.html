@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e78da8">
+<link rel="manifest" href="manifest.json">
+<title>مُنظِّمي اليوم</title>
+<style>
+:root{--pink:#e78da8;--pink2:#c96f8b;--ink:#60483f;--paper:#fffaf6;--line:#efb7c1;--soft:#fff0f3}
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,"Trebuchet MS",Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#fff7f1,#f9dce3);min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.3;background-image:radial-gradient(#e78da8 1px,transparent 1px);background-size:24px 24px}
+.app{width:min(100%,760px);margin:auto;padding:24px 16px 40px;position:relative}
+.screen{display:none}.screen.active{display:block}
+.card{background:rgba(255,250,246,.94);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 8px 25px #a96f7b18}
+h1,h2,h3{margin:0 0 12px}h1{font-size:32px}h2{font-size:24px}.muted{color:#98766d}
+input,button,select{font:inherit}input,select{width:100%;border:1.5px solid var(--line);background:#fffdfb;color:var(--ink);border-radius:14px;padding:13px;outline:none}
+button{border:0;border-radius:14px;padding:12px 16px;cursor:pointer}.primary{background:var(--pink);color:#fff;font-weight:bold}.secondary{background:#f9e3e8;color:var(--pink2)}
+.center{text-align:center}.bear{font-size:74px;margin:15px 0}.welcome{padding-top:13vh}
+.name-row,.add-row{display:flex;gap:8px}.name-row input,.add-row input{flex:1}.name-row button,.add-row button{white-space:nowrap}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.small{font-size:13px}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.nav button{background:#fff7f5;border:1px solid var(--line);color:var(--ink);min-height:72px}.nav button.active{background:var(--pink);color:white}
+.panel{display:none}.panel.active{display:block}
+.progress{height:12px;background:#f2dce1;border-radius:20px;overflow:hidden;margin:12px 0}.fill{height:100%;width:0;background:var(--pink);transition:.25s}
+.task{display:grid;grid-template-columns:32px 1fr 38px;gap:8px;align-items:center;background:#fffdfb;border:1px solid var(--line);border-radius:16px;padding:9px;margin:9px 0}.task.done .tasktext{text-decoration:line-through;opacity:.5}.num{background:var(--pink);color:white;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-size:13px}.tasktext{border:0;border-bottom:1px dashed var(--line);border-radius:0;padding:7px;background:transparent}.delete{background:#fff0f3;color:#b76580;font-size:22px;padding:4px}
+.prayer-table{width:100%;border-collapse:separate;border-spacing:0 8px}.prayer-table th{font-size:13px}.prayer-table td{background:#fffdfb;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px;text-align:center}.prayer-table td:first-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.prayer-table td:last-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}.prayer-table input{width:24px;height:24px;accent-color:var(--pink)}
+.celebrate{position:fixed;inset:0;background:#fff5f8ee;display:none;place-items:center;z-index:10;text-align:center}.celebrate.show{display:grid}.celebrate-box{padding:30px}.confetti{font-size:40px;letter-spacing:8px;animation:pop .7s infinite alternate}@keyframes pop{to{transform:scale(1.12)}} 
+@media(max-width:430px){h1{font-size:27px}.app{padding:16px 12px}.card{padding:16px}.nav button{font-size:13px;padding:8px}}
+</style>
+</head>
+<body>
+<main class="app">
+<section id="welcome" class="screen active">
+  <div class="card center welcome">
+    <div class="bear">🐻</div>
+    <h1>مرحبًا بك في مُنظِّمي اليوم</h1>
+    <p class="muted">لنبدأ يومًا هادئًا ومنظمًا خطوة بخطوة.</p>
+    <button class="primary" id="startBtn">ابدأ</button>
+  </div>
+</section>
+
+<section id="nameScreen" class="screen">
+  <div class="card">
+    <h2>ما اسمك؟</h2><p class="muted">اكتب اسمك مرة واحدة ليظهر في التذكيرات.</p>
+    <div class="name-row"><input id="nameInput" maxlength="40" placeholder="اكتب اسمك هنا"><button class="primary" id="saveName">حفظ</button></div>
+  </div>
+</section>
+
+<section id="main" class="screen">
+  <div class="header"><div><h2>مرحبًا بك 🌷</h2><div class="muted small" id="today"></div></div><button class="secondary small" id="notifyBtn">تفعيل التذكيرات</button></div>
+  <div class="nav">
+    <button class="active" data-tab="todo">📝<br>قائمة المهام</button>
+    <button data-tab="prayer">🕌<br>الصلاة</button>
+    <button data-tab="essential">⭐<br>المهام الأساسية</button>
+  </div>
+
+  <section class="panel active card" id="todo">
+    <h3>مهامي اليوم</h3>
+    <div class="add-row"><input id="taskInput" maxlength="120" placeholder="اكتب مهمة..."><button class="primary" id="addBtn">إضافة</button></div>
+    <div id="todoList"></div><div id="todoEmpty" class="muted center">أضف أول مهمة لك.</div>
+    <div class="progress"><div class="fill" id="todoFill"></div></div><div class="small" id="todoProgress">0 / 0 مكتملة</div>
+  </section>
+
+  <section class="panel card" id="prayer">
+    <h3>جدول الصلاة لهذا الأسبوع</h3>
+    <p class="muted small">ضع علامة عند أداء الصلاة. يظهر الاحتفال عند إكمال صلوات اليوم.</p>
+    <table class="prayer-table"><thead><tr><th>اليوم</th><th>الفجر</th><th>الظهر</th><th>العصر</th><th>المغرب</th><th>العشاء</th></tr></thead><tbody id="prayerBody"></tbody></table>
+  </section>
+
+  <section class="panel card" id="essential">
+    <h3>المهام الأساسية</h3><p class="muted small">يمكنك إضافة عادات أو مهام أساسية تتابعها كل يوم.</p>
+    <div class="add-row"><input id="essentialInput" maxlength="120" placeholder="مثال: قراءة، رياضة..."><button class="primary" id="essentialAdd">إضافة</button></div>
+    <div id="essentialList"></div>
+  </section>
+</section>
+</main>
+
+<div class="celebrate" id="celebrate"><div class="celebrate-box"><div class="confetti">🎉 ✨ 🎊</div><h1 id="celebrateTitle">أحسنت!</h1><p id="celebrateText">لقد أكملت مهامك اليوم.</p><button class="primary" id="closeCelebrate">الحمد لله</button></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const todayKey=()=>new Date().toISOString().slice(0,10);
+let data=JSON.parse(localStorage.getItem('plannerData')||'{"tasks":[],"essential":[],"prayers":{},"name":""}');
+const save=()=>localStorage.setItem('plannerData',JSON.stringify(data));
+const show=id=>document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+const dayNames=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+$('startBtn').onclick=()=>{show(data.name?'main':'nameScreen')};
+$('saveName').onclick=()=>{let n=$('nameInput').value.trim();if(!n)return;$('nameInput').value='';data.name=n;save();show('main');renderAll()};
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
+function addTask(){let v=$('taskInput').value.trim();if(!v)return;data.tasks.push({text:v,done:false,date:todayKey()});$('taskInput').value='';save();renderTasks()}
+$('addBtn').onclick=addTask;$('taskInput').onkeydown=e=>{if(e.key==='Enter')addTask()};
+function renderTasks(){let list=$('todoList');list.innerHTML='';$('todoEmpty').style.display=data.tasks.length?'none':'block';data.tasks.forEach((t,i)=>{let row=document.createElement('div');row.className='task'+(t.done?' done':'');row.innerHTML=`<div class="num">${i+1}</div><input class="tasktext" maxlength="120"><button class="delete">×</button>`;let check=document.createElement('input');check.type='checkbox';check.checked=t.done;check.style.width='22px';check.style.accentColor='var(--pink)';row.replaceChild(check,row.children[0]);let text=row.querySelector('.tasktext');text.value=t.text;text.oninput=()=>{t.text=text.value;save()};check.onchange=()=>{t.done=check.checked;save();renderTasks();checkAllTasks()};row.querySelector('.delete').onclick=()=>{data.tasks.splice(i,1);save();renderTasks()};list.append(row)});let c=data.tasks.filter(t=>t.done).length; $('todoProgress').textContent=`${c} / ${data.tasks.length} مكتملة`;$('todoFill').style.width=data.tasks.length?c/data.tasks.length*100+'%':'0%'}
+function checkAllTasks(){if(data.tasks.length&&data.tasks.every(t=>t.done)){celebrate('🎉 أحسنت يا بطل!','لقد أكملت جميع مهامك اليوم.');}}
+function celebrate(title,text){$('celebrateTitle').textContent=title;$('celebrateText').textContent=text;$('celebrate').classList.add('show');setTimeout(()=>$('celebrate').classList.remove('show'),60000)}
+$('closeCelebrate').onclick=()=>$('celebrate').classList.remove('show');
+function weekDates(){let d=new Date();let day=d.getDay();let sun=new Date(d);sun.setDate(d.getDate()-day);return [...Array(7)].map((_,i)=>{let x=new Date(sun);x.setDate(sun.getDate()+i);return x.toISOString().slice(0,10)})}
+const prayers=['الفجر','الظهر','العصر','المغرب','العشاء'];
+function renderPrayers(){let body=$('prayerBody');body.innerHTML='';weekDates().forEach(date=>{let tr=document.createElement('tr');let d=new Date(date+'T12:00:00');tr.innerHTML='<td>'+dayNames[d.getDay()]+'<br><span class="small">'+date.slice(5)+'</span></td>';prayers.forEach((p,i)=>{let key=date+'_'+i;let td=document.createElement('td');let cb=document.createElement('input');cb.type='checkbox';cb.checked=!!data.prayers[key];cb.onchange=()=>{data.prayers[key]=cb.checked;save();if(date===todayKey()&&prayers.every((_,j)=>data.prayers[date+'_'+j]))celebrate('الحمد لله 🌷','أتممت صلوات اليوم.');};td.append(cb);tr.append(td)});body.append(tr)})}
+function addEssential(){let v=$('essentialInput').value.trim();if(!v)return;data.essential.push({text:v,done:false});$('essentialInput').value='';save();renderEssential()}
+$('essentialAdd').onclick=addEssential;
+function renderEssential(){let el=$('essentialList');el.innerHTML='';data.essential.forEach((t,i)=>{let row=document.createElement('div');row.className='task'+(t.done?' done':'');row.innerHTML='<input type="checkbox"><input class="tasktext"><button class="delete">×</button>';let c=row.children[0],txt=row.children[1];c.checked=t.done;txt.value=t.text;c.onchange=()=>{t.done=c.checked;save();renderEssential()};txt.oninput=()=>{t.text=txt.value;save()};row.children[2].onclick=()=>{data.essential.splice(i,1);save();renderEssential()};el.append(row)})}
+$('notifyBtn').onclick=async()=>{if(!('Notification'in window)){alert('التذكيرات غير مدعومة في هذا المتصفح.');return}let p=await Notification.requestPermission();if(p==='granted')new Notification('مُنظِّمي اليوم',{body:`مرحبًا بك${data.name?' يا '+data.name:''}! لا تنسَ مهامك اليوم.`})};
+$('today').textContent=new Date().toLocaleDateString('ar-DZ',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+function renderAll(){renderTasks();renderPrayers();renderEssential()}
+if(data.name)show('main');renderAll();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
