@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Daily Planner</title>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7efe9;
+      color: #4a3028;
+      min-height: 100vh;
+      background-image: url("planner-bg.png");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================
+       LOGIN
+    ========================= */
+
+    .welcome {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(247, 239, 233, 0.75);
+    }
+
+    .welcome-card {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 28px;
+      padding: 40px 28px;
+      text-align: center;
+      box-shadow: 0 15px 50px rgba(85, 54, 40, 0.18);
+    }
+
+    .welcome-card h1 {
+      font-size: 34px;
+      margin-bottom: 12px;
+      color: #6b4031;
+    }
+
+    .welcome-card p {
+      color: #80665b;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .google-btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px 18px;
+      background: white;
+      color: #3c302b;
+      border: 1px solid #dfd2cb;
+      box-shadow: 0 5px 15px rgba(70, 45, 35, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(70, 45, 35, 0.12);
+    }
+
+    .google-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+      transform: none;
+    }
+
+    .google-icon {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #4285f4;
+      background: #f1f5ff;
+    }
+
+    .login-note {
+      font-size: 13px;
+      margin-top: 18px !important;
+      margin-bottom: 0 !important;
+      color: #9b8278 !important;
+    }
+
+    #loginError {
+      color: #b64b4b;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    /* =========================
+       APP
+    ========================= */
+
+    .page {
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.94);
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 18px rgba(70, 45, 35, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand h1 {
+      font-size: 22px;
+      color: #6b4031;
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: #8b7166;
+      margin-top: 4px;
+    }
+
+    .signout-btn {
+      border: none;
+      background: #ead5ca;
+      color: #654236;
+      padding: 9px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .signout-btn:hover {
+      background: #dfc1b4;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px 15px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      border: none;
+      background: rgba(255,255,255,0.85);
+      color: #725246;
+      padding: 11px 20px;
+      border-radius: 14px;
+      font-weight: bold;
+      box-shadow: 0 3px 12px rgba(70, 45, 35, 0.06);
+    }
+
+    .nav-btn.active {
+      background: #8c5a48;
+      color: white;
+    }
+
+    .container {
+      width: min(920px, calc(100% - 30px));
+      margin: auto;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.94);
+      border-radius: 24px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 35px rgba(70, 45, 35, 0.08);
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .section-title h2 {
+      color: #684234;
+      font-size: 23px;
+    }
+
+    .date-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .date-row input {
+      border: 1px solid #dfcfc6;
+      background: #fffaf7;
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: #5d4035;
+    }
+
+    .task-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .task-input-row input {
+      flex: 1;
+      border: 1px solid #dfcfc6;
+      background: #fffaf7;
+      padding: 13px 14px;
+      border-radius: 13px;
+      outline: none;
+    }
+
+    .primary-btn {
+      border: none;
+      background: #8c5a48;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 13px;
+      font-weight: bold;
+    }
+
+    .primary-btn:hover {
+      background: #754936;
+    }
+
+    .progress-wrap {
+      margin: 15px 0 20px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #7b6055;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #eaded7;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #9b6a57;
+      border-radius: 20px;
+      transition: width 0.3s ease;
+    }
+
+    .tasks {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border-radius: 15px;
+      background: #fbf5f1;
+      border: 1px solid #eee1da;
+    }
+
+    .task-check {
+      width: 21px;
+      height: 21px;
+      accent-color: #8c5a48;
+      flex-shrink: 0;
+    }
+
+    .task-text {
+      flex: 1;
+      color: #563a30;
+      word-break: break-word;
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .small-btn {
+      border: none;
+      background: #ead8ce;
+      color: #694638;
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 12px;
+    }
+
+    .delete-btn {
+      background: #f1d2d0;
+      color: #874442;
+    }
+
+    .empty {
+      text-align: center;
+      color: #9a8177;
+      padding: 25px 10px;
+    }
+
+    /* =========================
+       REMINDER
+    ========================= */
+
+    .reminder-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .reminder-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .reminder-controls input[type="time"] {
+      border: 1px solid #dfcfc6;
+      background: #fffaf7;
+      padding: 9px;
+      border-radius: 10px;
+    }
+
+    .reminder-controls input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      accent-color: #8c5a48;
+    }
+
+    .reminder-status {
+      color: #80665b;
+      font-size: 14px;
+    }
+
+    /* =========================
+       PRAYER
+    ========================= */
+
+    .prayer-table-wrap {
+      overflow-x: auto;
+    }
+
+    .prayer-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 520px;
+    }
+
+    .prayer-table th,
+    .prayer-table td {
+      padding: 12px 9px;
+      text-align: center;
+      border-bottom: 1px solid #eaded7;
+    }
+
+    .prayer-table th {
+      color: #725246;
+      font-size: 13px;
+    }
+
+    .prayer-name {
+      text-align: left !important;
+      font-weight: bold;
+      color: #654236;
+    }
+
+    .prayer-check {
+      width: 20px;
+      height: 20px;
+      accent-color: #8c5a48;
+    }
+
+    /* =========================
+       TOAST
+    ========================= */
+
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 25px;
+      transform: translateX(-50%) translateY(20px);
+      background: #5d3e32;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s;
+      z-index: 100;
+      font-size: 14px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* =========================
+       CELEBRATION
+    ========================= */
+
+    #celebration {
+      position: fixed;
+      inset: 0;
+      background: rgba(72, 44, 35, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      padding: 20px;
+    }
+
+    .celebration-card {
+      background: white;
+      border-radius: 25px;
+      padding: 35px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .celebration-card h2 {
+      color: #744837;
+      margin-bottom: 12px;
+    }
+
+    .celebration-card p {
+      color: #856b60;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        align-items: flex-start;
+      }
+
+      .task-input-row {
+        flex-direction: column;
+      }
+
+      .task-actions {
+        flex-direction: column;
+      }
+
+      .reminder-row {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       LOGIN SCREEN
+  ========================= -->
+
+  <section id="welcome" class="welcome">
+    <div class="welcome-card">
+
+      <h1>Welcome 🌷</h1>
+
+      <p>
+        Sign in with Google to open your daily planner.
+      </p>
+
+      <button id="googleLoginBtn" class="google-btn">
+        <span class="google-icon">G</span>
+        Continue with Google
+      </button>
+
+      <p class="login-note">
+        Your planner will only be accessible after signing in.
+      </p>
+
+      <div id="loginError"></div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================
+       MAIN APP
+  ========================= -->
+
+  <main id="app" class="page hidden">
+
+    <header>
+
+      <div class="brand">
+        <h1 id="helloName">My Daily Planner</h1>
+        <p id="userEmail">Your daily space</p>
+      </div>
+
+      <button id="signOutBtn" class="signout-btn">
+        Sign Out
+      </button>
+
+    </header>
+
+
+    <nav>
+      <button class="nav-btn active" data-page="todoPage">
+        To-Do List
+      </button>
+
+      <button class="nav-btn" data-page="prayerPage">
+        Prayer
+      </button>
+    </nav>
+
+
+    <div class="container">
+
+      <!-- =========================
+           TODO PAGE
+      ========================= -->
+
+      <section id="todoPage">
+
+        <div class="card">
+
+          <div class="section-title">
+            <h2>Today's Tasks</h2>
+          </div>
+
+          <div class="date-row">
+            <label for="selectedDate">
+              Date:
+            </label>
+
+            <input
+              type="date"
+              id="selectedDate"
+            >
+          </div>
+
+
+          <div class="task-input-row">
+
+            <input
+              type="text"
+              id="taskInput"
+              placeholder="Write a task..."
+              autocomplete="off"
+            >
+
+            <button
+              id="addTaskBtn"
+              class="primary-btn"
+            >
+              Add Task
+            </button>
+
+          </div>
+
+
+          <div class="progress-wrap">
+
+            <div class="progress-info">
+              <span>Progress</span>
+              <span id="progressText">0%</span>
+            </div>
+
+            <div class="progress-bar">
+              <div
+                id="progressFill"
+                class="progress-fill"
+              ></div>
+            </div>
+
+          </div>
+
+
+          <div id="tasks" class="tasks"></div>
+
+        </div>
+
+
+        <!-- REMINDER -->
+
+        <div class="card">
+
+          <div class="section-title">
+            <h2>Reminder 🔔</h2>
+          </div>
+
+          <div class="reminder-row">
+
+            <div class="reminder-controls">
+
+              <input
+                type="checkbox"
+                id="reminderEnabled"
+              >
+
+              <input
+                type="time"
+                id="reminderTime"
+                value="09:00"
+              >
+
+            </div>
+
+            <div
+              id="reminderStatus"
+              class="reminder-status"
+            >
+              Reminder is off
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           PRAYER PAGE
+      ========================= -->
+
+      <section
+        id="prayerPage"
+        class="hidden"
+      >
+
+        <div class="card">
+
+          <div class="section-title">
+            <h2>Prayer Tracker 🕌</h2>
+          </div>
+
+          <p style="color:#80665b; margin-bottom:18px;">
+            Track your five daily prayers.
+          </p>
+
+          <div class="prayer-table-wrap">
+
+            <table class="prayer-table">
+
+              <thead>
+                <tr>
+                  <th>Prayer</th>
+                  <th>Mon</th>
+                  <th>Tue</th>
+                  <th>Wed</th>
+                  <th>Thu</th>
+                  <th>Fri</th>
+                  <th>Sat</th>
+                  <th>Sun</th>
+                </tr>
+              </thead>
+
+              <tbody id="prayerTableBody"></tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+
+  <!-- =========================
+       CELEBRATION
+  ========================= -->
+
+  <div
+    id="celebration"
+    class="hidden"
+  >
+
+    <div class="celebration-card">
+
+      <h2>🎉 Well Done!</h2>
+
+      <p>
+        You completed all your tasks for today.
+      </p>
+
+      <button
+        id="closeCelebration"
+        class="primary-btn"
+      >
+        Continue
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div id="toast"></div>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================= -->
+
+  <script>
+
+    "use strict";
+
+
+    /* =========================================
+       SUPABASE
+    ========================================= */
+
+    const SUPABASE_URL =
+      "https://mmmftqfavofdfyufsohd.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_zbgDf8Ipi5ISiRChb2R--w_1zmjUSGR";
+
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
+      );
+
+
+    /* =========================================
+       HELPERS
+    ========================================= */
+
+    const $ = (id) =>
+      document.getElementById(id);
+
+
+    function todayString() {
+
+      const now = new Date();
+
+      const year =
+        now.getFullYear();
+
+      const month =
+        String(now.getMonth() + 1)
+          .padStart(2, "0");
+
+      const day =
+        String(now.getDate())
+          .padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+
+    function load(key, fallback) {
+
+      try {
+
+        const value =
+          localStorage.getItem(key);
+
+        return value
+          ? JSON.parse(value)
+          : fallback;
+
+      } catch {
+
+        return fallback;
+      }
+    }
+
+
+    function save(key, value) {
+
+      try {
+
+        localStorage.setItem(
+          key,
+          JSON.stringify(value)
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Local storage error:",
+          error
+        );
+
+      }
+    }
+
+
+    /* =========================================
+       USER DATA
+    ========================================= */
+
+    const BASE_KEYS = {
+
+      tasks: "plannerTasksV3",
+
+      prayers: "plannerPrayersV3",
+
+      date: "plannerDateV3",
+
+      reminder: "plannerReminderV3"
+
+    };
+
+
+    let currentUserId = null;
+
+    let userName = "";
+
+    let tasks = [];
+
+    let prayers = {};
+
+    let selectedDate = todayString();
+
+    let reminder = {
+      enabled: false,
+      time: "09:00"
+    };
+
+
+    function userKey(name) {
+
+      if (!currentUserId) {
+        return null;
+      }
+
+      return `${BASE_KEYS[name]}_${currentUserId}`;
+    }
+
+
+    function saveUserData(name, value) {
+
+      const key =
+        userKey(name);
+
+      if (!key) return;
+
+      save(key, value);
+    }
+
+
+    function loadUserData() {
+
+      tasks =
+        load(
+          userKey("tasks"),
+          []
+        );
+
+      prayers =
+        load(
+          userKey("prayers"),
+          {}
+        );
+
+      selectedDate =
+        localStorage.getItem(
+          userKey("date")
+        ) || todayString();
+
+      reminder =
+        load(
+          userKey("reminder"),
+          {
+            enabled: false,
+            time: "09:00"
+          }
+        );
+
+    }
+
+
+    /* =========================================
+       LOGIN SCREEN
+    ========================================= */
+
+    function showLogin() {
+
+      $("welcome")
+        .classList
+        .remove("hidden");
+
+      $("app")
+        .classList
+        .add("hidden");
+
+      $("loginError")
+        .textContent = "";
+
+      $("googleLoginBtn")
+        .disabled = false;
+
+      $("googleLoginBtn")
+        .innerHTML =
+          '<span class="google-icon">G</span> Continue with Google';
+
+      currentUserId = null;
+
+      tasks = [];
+
+      prayers = {};
+
+    }
+
+
+    async function loginWithGoogle() {
+
+      const button =
+        $("googleLoginBtn");
+
+      const errorBox =
+        $("loginError");
+
+
+      button.disabled = true;
+
+      button.textContent =
+        "Connecting...";
+
+      errorBox.textContent = "";
+
+
+      const redirectTo =
+        window.location.origin +
+        window.location.pathname;
+
+
+      const {
+        error
+      } =
+        await supabaseClient.auth.signInWithOAuth({
+
+          provider: "google",
+
+          options: {
+            redirectTo: redirectTo
+          }
+
+        });
+
+
+      if (error) {
+
+        console.error(error);
+
+        errorBox.textContent =
+          error.message ||
+          "Unable to sign in.";
+
+        button.disabled = false;
+
+        button.innerHTML =
+          '<span class="google-icon">G</span> Continue with Google';
+      }
+
+    }
+
+
+    /* =========================================
+       ENTER APP
+    ========================================= */
+
+    async function enterApp(user) {
+
+      if (!user) {
+        showLogin();
+        return;
+      }
+
+
+      if (
+        currentUserId === user.id &&
+        !$("app").classList.contains("hidden")
+      ) {
+        return;
+      }
+
+
+      currentUserId =
+        user.id;
+
+
+      userName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "User";
+
+
+      $("helloName").textContent =
+        `Hello, ${userName} 🌷`;
+
+
+      $("userEmail").textContent =
+        user.email || "";
+
+
+      loadUserData();
+
+
+      $("selectedDate").value =
+        selectedDate;
+
+
+      $("reminderEnabled").checked =
+        reminder.enabled;
+
+
+      $("reminderTime").value =
+        reminder.time || "09:00";
+
+
+      $("welcome")
+        .classList
+        .add("hidden");
+
+
+      $("app")
+        .classList
+        .remove("hidden");
+
+
+      renderTasks();
+
+      renderPrayerTable();
+
+      updateReminderStatus();
+
+    }
+
+
+    /* =========================================
+       AUTH INITIALIZATION
+    ========================================= */
+
+    async function initAuth() {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient.auth.getSession();
+
+
+      if (error) {
+
+        console.error(
+          "Session error:",
+          error
+        );
+
+        showLogin();
+
+      } else if (data?.session?.user) {
+
+        await enterApp(
+          data.session.user
+        );
+
+      } else {
+
+        showLogin();
+
+      }
+
+
+      supabaseClient.auth.onAuthStateChange(
+        async (event, session) => {
+
+          if (session?.user) {
+
+            setTimeout(() => {
+              enterApp(session.user);
+            }, 0);
+
+          } else {
+
+            setTimeout(() => {
+              showLogin();
+            }, 0);
+
+          }
+
+        }
+      );
+
+    }
+
+
+    /* =========================================
+       SIGN OUT
+    ========================================= */
+
+    async function signOut() {
+
+      const {
+        error
+      } =
+        await supabaseClient.auth.signOut();
+
+
+      if (error) {
+
+        console.error(error);
+
+        showToast(
+          "Unable to sign out."
+        );
+
+        return;
+      }
+
+      showLogin();
+
+    }
+
+
+    /* =========================================
+       NAVIGATION
+    ========================================= */
+
+    document
+      .querySelectorAll(".nav-btn")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const pageId =
+              button.dataset.page;
+
+
+            document
+              .querySelectorAll(".nav-btn")
+              .forEach(btn => {
+
+                btn.classList.remove(
+                  "active"
+                );
+
+              });
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            $("todoPage")
+              .classList
+              .toggle(
+                "hidden",
+                pageId !== "todoPage"
+              );
+
+
+            $("prayerPage")
+              .classList
+              .toggle(
+                "hidden",
+                pageId !== "prayerPage"
+              );
+
+          }
+        );
+
+      });
+
+
+    /* =========================================
+       TASKS
+    ========================================= */
+
+    function renderTasks() {
+
+      const container =
+        $("tasks");
+
+
+      container.innerHTML = "";
+
+
+      if (!tasks.length) {
+
+        container.innerHTML =
+          '<div class="empty">No tasks yet. Add your first task 🌷</div>';
+
+        updateProgress();
+
+        return;
+      }
+
+
+      tasks.forEach(
+        (task, index) => {
+
+          const item =
+            document.createElement("div");
+
+          item.className =
+            "task-item" +
+            (task.completed
+              ? " completed"
+              : "");
+
+
+          const checkbox =
+            document.createElement("input");
+
+          checkbox.type =
+            "checkbox";
+
+          checkbox.className =
+            "task-check";
+
+          checkbox.checked =
+            task.completed;
+
+
+          checkbox.addEventListener(
+            "change",
+            () => {
+
+              tasks[index].completed =
+                checkbox.checked;
+
+              saveUserData(
+                "tasks",
+                tasks
+              );
+
+              renderTasks();
+
+              checkCelebration();
+
+            }
+          );
+
+
+          const text =
+            document.createElement("div");
+
+          text.className =
+            "task-text";
+
+          text.textContent =
+            task.text;
+
+
+          const actions =
+            document.createElement("div");
+
+          actions.className =
+            "task-actions";
+
+
+          const edit =
+            document.createElement("button");
+
+          edit.className =
+            "small-btn";
+
+          edit.textContent =
+            "Edit";
+
+
+          edit.addEventListener(
+            "click",
+            () => {
+
+              const newText =
+                prompt(
+                  "Edit task:",
+                  task.text
+                );
+
+
+              if (
+                newText === null
+              ) {
+                return;
+              }
+
+
+              const clean =
+                newText.trim();
+
+
+              if (!clean) {
+                return;
+              }
+
+
+              tasks[index].text =
+                clean;
+
+
+              saveUserData(
+                "tasks",
+                tasks
+              );
+
+
+              renderTasks();
+
+            }
+          );
+
+
+          const remove =
+            document.createElement("button");
+
+          remove.className =
+            "small-btn delete-btn";
+
+          remove.textContent =
+            "Delete";
+
+
+          remove.addEventListener(
+            "click",
+            () => {
+
+              tasks.splice(
+                index,
+                1
+              );
+
+
+              saveUserData(
+                "tasks",
+                tasks
+              );
+
+
+              renderTasks();
+
+            }
+          );
+
+
+          actions.appendChild(edit);
+
+          actions.appendChild(remove);
+
+
+          item.appendChild(checkbox);
+
+          item.appendChild(text);
+
+          item.appendChild(actions);
+
+
+          container.appendChild(item);
+
+        }
+      );
+
+
+      updateProgress();
+
+    }
+
+
+    function addTask() {
+
+      const input =
+        $("taskInput");
+
+
+      const text =
+        input.value.trim();
+
+
+      if (!text) {
+
+        showToast(
+          "Write a task first."
+        );
+
+        return;
+      }
+
+
+      tasks.push({
+
+        id:
+          Date.now(),
+
+        text:
+          text,
+
+        completed:
+          false,
+
+        date:
+          selectedDate
+
+      });
+
+
+      saveUserData(
+        "tasks",
+        tasks
+      );
+
+
+      input.value = "";
+
+      renderTasks();
+
+      showToast(
+        "Task added ✓"
+      );
+
+    }
+
+
+    function updateProgress() {
+
+      const total =
+        tasks.length;
+
+
+      const completed =
+        tasks.filter(
+          task => task.completed
+        ).length;
+
+
+      const percentage =
+        total === 0
+          ? 0
+          : Math.round(
+              (completed / total) * 100
+            );
+
+
+      $("progressFill")
+        .style.width =
+        `${percentage}%`;
+
+
+      $("progressText")
+        .textContent =
+        `${percentage}%`;
+
+    }
+
+
+    /* =========================================
+       PRAYER
+    ========================================= */
+
+    const prayerNames = [
+      "Fajr",
+      "Dhuhr",
+      "Asr",
+      "Maghrib",
+      "Isha"
+    ];
+
+
+    const dayNames = [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun"
+    ];
+
+
+    function renderPrayerTable() {
+
+      const body =
+        $("prayerTableBody");
+
+
+      body.innerHTML = "";
+
+
+      prayerNames.forEach(
+        prayer => {
+
+          const row =
+            document.createElement("tr");
+
+
+          const nameCell =
+            document.createElement("td");
+
+          nameCell.className =
+            "prayer-name";
+
+          nameCell.textContent =
+            prayer;
+
+
+          row.appendChild(
+            nameCell
+          );
+
+
+          dayNames.forEach(
+            day => {
+
+              const cell =
+                document.createElement("td");
+
+
+              const checkbox =
+                document.createElement("input");
+
+              checkbox.type =
+                "checkbox";
+
+              checkbox.className =
+                "prayer-check";
+
+
+              const key =
+                `${prayer}_${day}`;
+
+
+              checkbox.checked =
+                !!prayers[key];
+
+
+              checkbox.addEventListener(
+                "change",
+                () => {
+
+                  prayers[key] =
+                    checkbox.checked;
+
+
+                  saveUserData(
+                    "prayers",
+                    prayers
+                  );
+
+                }
+              );
+
+
+              cell.appendChild(
+                checkbox
+              );
+
+
+              row.appendChild(
+                cell
+              );
+
+            }
+          );
+
+
+          body.appendChild(
+            row
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================================
+       REMINDER
+    ========================================= */
+
+    function updateReminderStatus() {
+
+      if (
+        reminder.enabled
+      ) {
+
+        $("reminderStatus")
+          .textContent =
+          `Reminder is on at ${reminder.time}`;
+
+      } else {
+
+        $("reminderStatus")
+          .textContent =
+          "Reminder is off";
+
+      }
+
+    }
+
+
+    function saveReminder() {
+
+      reminder = {
+
+        enabled:
+          $("reminderEnabled").checked,
+
+        time:
+          $("reminderTime").value
+
+      };
+
+
+      saveUserData(
+        "reminder",
+        reminder
+      );
+
+
+      updateReminderStatus();
+
+    }
+
+
+    function checkReminder() {
+
+      if (
+        !currentUserId ||
+        !reminder.enabled
+      ) {
+        return;
+      }
+
+
+      const now =
+        new Date();
+
+
+      const currentTime =
+        now.toTimeString()
+          .slice(0, 5);
+
+
+      const today =
+        todayString();
+
+
+      const reminderKey =
+        `reminderShown_${currentUserId}_${today}_${reminder.time}`;
+
+
+      if (
+        currentTime ===
+        reminder.time &&
+        !localStorage.getItem(
+          reminderKey
+        )
+      ) {
+
+        localStorage.setItem(
+          reminderKey,
+          "1"
+        );
+
+
+        showToast(
+          "🔔 Reminder: check your planner!"
+        );
+
+      }
+
+    }
+
+
+    /* =========================================
+       CELEBRATION
+    ========================================= */
+
+    let celebrationShown = false;
+
+
+    function checkCelebration() {
+
+      if (
+        celebrationShown ||
+        tasks.length === 0
+      ) {
+        return;
+      }
+
+
+      const allDone =
+        tasks.every(
+          task => task.completed
+        );
+
+
+      if (allDone) {
+
+        celebrationShown =
+          true;
+
+
+        $("celebration")
+          .classList
+          .remove("hidden");
+
+      }
+
+    }
+
+
+    $("closeCelebration")
+      .addEventListener(
+        "click",
+        () => {
+
+          $("celebration")
+            .classList
+            .add("hidden");
+
+        }
+      );
+
+
+    /* =========================================
+       TOAST
+    ========================================= */
+
+    let toastTimer;
+
+
+    function showToast(message) {
+
+      const toast =
+        $("toast");
+
+
+      toast.textContent =
+        message;
+
+
+      toast.classList.add(
+        "show"
+      );
+
+
+      clearTimeout(
+        toastTimer
+      );
+
+
+      toastTimer =
+        setTimeout(
+          () => {
+
+            toast.classList.remove(
+              "show"
+            );
+
+          },
+          2500
+        );
+
+    }
+
+
+    /* =========================================
+       EVENT LISTENERS
+    ========================================= */
+
+    $("googleLoginBtn")
+      .addEventListener(
+        "click",
+        loginWithGoogle
+      );
+
+
+    $("signOutBtn")
+      .addEventListener(
+        "click",
+        signOut
+      );
+
+
+    $("addTaskBtn")
+      .addEventListener(
+        "click",
+        addTask
+      );
+
+
+    $("taskInput")
+      .addEventListener(
+        "keydown",
+        event => {
+
+          if (
+            event.key === "Enter"
+          ) {
+
+            addTask();
+
+          }
+
+        }
+      );
+
+
+    $("selectedDate")
+      .addEventListener(
+        "change",
+        () => {
+
+          selectedDate =
+            $("selectedDate").value ||
+            todayString();
+
+
+          saveUserData(
+            "date",
+            selectedDate
+          );
+
+
+          renderTasks();
+
+        }
+      );
+
+
+    $("reminderEnabled")
+      .addEventListener(
+        "change",
+        saveReminder
+      );
+
+
+    $("reminderTime")
+      .addEventListener(
+        "change",
+        saveReminder
+      );
+
+
+    /* =========================================
+       REMINDER CHECK
+    ========================================= */
+
+    setInterval(
+      checkReminder,
+      30000
+    );
+
+
+    /* =========================================
+       START
+    ========================================= */
+
+    initAuth();
+
+  </script>
+
+</body>
+</html>
