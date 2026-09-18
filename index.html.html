@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e78da8">
+<link rel="manifest" href="manifest.json">
+<title>My Daily Planner</title>
+
+<style>
+:root {
+  --pink:#e78da8;
+  --pink-dark:#c96f8b;
+  --brown:#6b493b;
+  --cream:rgba(255,250,247,.94);
+  --line:#efb7c1;
+  --green:#82a88b;
+}
+
+* { box-sizing:border-box; }
+
+html,body {
+  margin:0;
+  min-height:100%;
+}
+
+body {
+  font-family:"Trebuchet MS",Arial,sans-serif;
+  color:var(--brown);
+  background:#f8d7dc;
+}
+
+button,input,select { font:inherit; }
+button { cursor:pointer; }
+
+button:focus-visible,
+input:focus-visible {
+  outline:3px solid var(--pink-dark);
+  outline-offset:2px;
+}
+
+.hidden {
+  display:none!important;
+}
+
+.page {
+  width:min(100%,1024px);
+  min-height:100vh;
+  margin:auto;
+  padding:0 8% 100px;
+  background-image:url("autumn-planner-bg.jpg");
+  background-repeat:no-repeat;
+  background-position:top center;
+  background-size:100% auto;
+}
+
+.top-space {
+  height:355px;
+}
+
+/* Welcome */
+
+.welcome {
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(107,73,59,.20);
+  backdrop-filter:blur(3px);
+}
+
+.welcome-card {
+  width:min(100%,430px);
+  padding:35px 25px;
+  text-align:center;
+  border:2px solid var(--line);
+  border-radius:28px;
+  background:#fffaf7;
+  box-shadow:0 15px 40px rgba(100,60,70,.15);
+}
+
+.welcome-card h1 {
+  margin:0 0 12px;
+}
+
+.welcome-card p {
+  line-height:1.8;
+}
+
+.welcome-card input {
+  width:100%;
+  height:52px;
+  margin:15px 0;
+  padding:0 15px;
+  border:2px solid var(--line);
+  border-radius:15px;
+  color:var(--brown);
+  background:white;
+}
+
+.primary-btn,
+.add {
+  border:0;
+  border-radius:15px;
+  padding:13px 24px;
+  background:var(--pink);
+  color:white;
+  font-weight:bold;
+}
+
+.primary-btn:hover,
+.add:hover {
+  background:var(--pink-dark);
+}
+
+/* Header */
+
+.header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:20px;
+}
+
+.greeting {
+  font-size:22px;
+  font-weight:bold;
+}
+
+.greeting small {
+  display:block;
+  margin-top:5px;
+  font-size:13px;
+  font-weight:normal;
+  opacity:.7;
+}
+
+.small-btn {
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:9px 12px;
+  background:var(--cream);
+  color:var(--brown);
+}
+
+/* Navigation */
+
+.nav {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:22px;
+}
+
+.nav-btn {
+  min-height:65px;
+  border:1.5px solid var(--line);
+  border-radius:17px;
+  background:rgba(255,250,247,.94);
+  color:var(--brown);
+  font-weight:bold;
+}
+
+.nav-btn.active {
+  background:var(--pink);
+  color:white;
+  border-color:var(--pink);
+}
+
+.nav-btn span {
+  display:block;
+  font-size:12px;
+  margin-top:4px;
+  font-weight:normal;
+}
+
+/* Panels */
+
+.panel {
+  padding:20px;
+  margin-bottom:18px;
+  border:1.5px solid var(--line);
+  border-radius:22px;
+  background:var(--cream);
+  box-shadow:0 4px 15px rgba(120,70,80,.06);
+}
+
+.panel-title {
+  margin:0 0 6px;
+  font-size:24px;
+}
+
+.panel-subtitle {
+  margin:0 0 18px;
+  font-size:14px;
+  opacity:.7;
+  line-height:1.8;
+}
+
+/* Tasks */
+
+.controls {
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.date,
+.task-input {
+  height:50px;
+  padding:0 13px;
+  border:2px solid var(--line);
+  border-radius:14px;
+  background:#fffaf7;
+  color:var(--brown);
+  outline:none;
+}
+
+.date {
+  width:175px;
+}
+
+.task-input {
+  flex:1;
+  min-width:0;
+}
+
+.progress-wrap {
+  padding:12px;
+  margin-bottom:15px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:rgba(255,250,247,.75);
+}
+
+.progress-top {
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+  font-size:14px;
+  font-weight:bold;
+}
+
+.bar {
+  height:10px;
+  overflow:hidden;
+  border-radius:20px;
+  background:#f0d9dd;
+}
+
+.fill {
+  width:0;
+  height:100%;
+  border-radius:20px;
+  background:var(--pink);
+  transition:width .3s;
+}
+
+.tasks {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.task {
+  display:grid;
+  grid-template-columns:38px 1fr 36px;
+  align-items:center;
+  gap:10px;
+  min-height:60px;
+  padding:8px;
+  border:1.5px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,250,247,.94);
+}
+
+.num {
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#e891aa;
+  color:white;
+  font-weight:bold;
+}
+
+.task-main {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.check,
+.prayer-check {
+  width:23px;
+  height:23px;
+  accent-color:var(--pink);
+  cursor:pointer;
+}
+
+.text {
+  width:100%;
+  min-width:0;
+  padding:8px 4px;
+  border:0;
+  border-bottom:1px dashed #e4a0af;
+  outline:none;
+  background:transparent;
+  color:var(--brown);
+}
+
+.done .text {
+  text-decoration:line-through;
+  opacity:.5;
+}
+
+.delete {
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:10px;
+  background:#fff;
+  color:#c9778b;
+  font-size:22px;
+}
+
+.empty {
+  padding:22px;
+  text-align:center;
+  border:1.5px dashed var(--line);
+  border-radius:16px;
+  opacity:.7;
+}
+
+/* Prayer */
+
+.prayer-tools {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.week-label {
+  padding:12px;
+  border-radius:13px;
+  background:#fbe5ec;
+  font-weight:bold;
+}
+
+.table-wrap {
+  overflow-x:auto;
+  border:1px solid var(--line);
+  border-radius:15px;
+}
+
+.prayer-table {
+  width:100%;
+  min-width:650px;
+  border-collapse:collapse;
+  background:rgba(255,250,247,.8);
+}
+
+.prayer-table th,
+.prayer-table td {
+  padding:10px 7px;
+  text-align:center;
+  border-bottom:1px solid #f0cbd2;
+  border-left:1px solid #f0cbd2;
+}
+
+.prayer-table th {
+  background:#fbe5ec;
+  font-size:13px;
+}
+
+.prayer-table th:first-child,
+.prayer-table td:first-child {
+  text-align:left;
+  font-weight:bold;
+  white-space:nowrap;
+}
+
+.today {
+  background:rgba(231,141,168,.15);
+}
+
+.prayer-summary {
+  margin-top:15px;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fffaf7;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* Reminder */
+
+.reminder-box {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:#fffaf7;
+}
+
+.reminder-box label {
+  flex:1;
+}
+
+.reminder-box input[type="time"] {
+  width:110px;
+  height:38px;
+}
+
+/* Celebration */
+
+.celebration {
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  text-align:center;
+  background:rgba(255,241,245,.94);
+}
+
+.celebration-card {
+  width:min(100%,550px);
+  padding:40px 25px;
+  border:3px solid #efb0c1;
+  border-radius:30px;
+  background:#fffaf7;
+  box-shadow:0 15px 50px rgba(170,90,120,.2);
+}
+
+.celebration h2 {
+  margin:10px 0;
+  color:var(--pink-dark);
+  font-size:34px;
+}
+
+.celebration p {
+  font-size:18px;
+  line-height:1.8;
+}
+
+.confetti {
+  position:relative;
+  height:100px;
+  overflow:hidden;
+}
+
+.confetti-piece {
+  position:absolute;
+  top:-20px;
+  width:10px;
+  height:20px;
+  background:var(--pink);
+  animation:fall 3s linear infinite;
+}
+
+@keyframes fall {
+  from {
+    transform:translateY(0) rotate(0);
+  }
+
+  to {
+    transform:translateY(140px) rotate(360deg);
+  }
+}
+
+.close-celebration {
+  margin-top:15px;
+  padding:12px 25px;
+  border:0;
+  border-radius:14px;
+  background:var(--pink);
+  color:white;
+}
+
+.toast {
+  position:fixed;
+  bottom:25px;
+  left:50%;
+  z-index:300;
+  transform:translateX(-50%) translateY(20px);
+  opacity:0;
+  padding:12px 22px;
+  border-radius:22px;
+  background:var(--pink);
+  color:white;
+  transition:.3s;
+  white-space:nowrap;
+}
+
+.toast.show {
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+@media(max-width:700px) {
+  .page {
+    padding:0 5% 80px;
+  }
+
+  .top-space {
+    height:235px;
+  }
+
+  .controls {
+    flex-wrap:wrap;
+  }
+
+  .date {
+    width:100%;
+  }
+
+  .task-input {
+    min-width:calc(100% - 90px);
+  }
+
+  .panel {
+    padding:14px;
+  }
+}
+
+@media(max-width:430px) {
+  .top-space {
+    height:190px;
+  }
+
+  .nav {
+    gap:6px;
+  }
+
+  .nav-btn {
+    font-size:12px;
+  }
+
+  .task {
+    grid-template-columns:32px 1fr 32px;
+    gap:6px;
+  }
+
+  .num {
+    width:32px;
+    height:32px;
+    font-size:13px;
+  }
+
+  .text {
+    font-size:14px;
+  }
+}
+
+/* QURAN */
+.quran-settings{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:18px}.quran-field{display:flex;flex-direction:column;gap:6px}.quran-field label{font-size:13px;font-weight:bold}.quran-field input,.quran-field select{height:50px;padding:0 13px;border:2px solid var(--line);border-radius:14px;background:#fffaf7;color:var(--brown);outline:none}.quran-progress-card{padding:15px;margin-bottom:18px;border:1px solid var(--line);border-radius:16px;background:#fffaf7}.quran-progress-top{display:flex;justify-content:space-between;margin-bottom:8px;font-weight:bold;font-size:14px}.quran-bar{height:10px;overflow:hidden;border-radius:20px;background:#f0d9dd}.quran-fill{width:0;height:100%;border-radius:20px;background:var(--pink);transition:width .3s}.quran-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.quran-stat{text-align:center;padding:10px;border:1px solid var(--line);border-radius:13px;background:#fff}.quran-stat strong{display:block;font-size:17px}.quran-stat span{font-size:11px;opacity:.7}.quran-month{margin-bottom:14px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fffaf7}.quran-month-title{padding:12px 15px;background:#fbe5ec;font-weight:bold}.quran-day{display:grid;grid-template-columns:105px 1fr 110px 35px;gap:10px;align-items:center;padding:12px;border-top:1px solid #f0cbd2}.quran-day.locked{opacity:.45}.quran-day.review-day{background:rgba(231,141,168,.06)}.quran-date{font-size:12px;font-weight:bold}.quran-main strong{display:block;margin-bottom:3px}.quran-main span{display:block;font-size:12px;opacity:.72}.quran-type{text-align:center;padding:7px;border-radius:10px;background:#fbe5ec;font-size:11px;font-weight:bold}.quran-check{width:22px;height:22px;accent-color:var(--pink);cursor:pointer}.quran-empty{text-align:center;padding:28px 15px;border:1.5px dashed var(--line);border-radius:16px;opacity:.75}.quran-rule{margin-top:-8px}.quran-unlock{display:block;font-size:11px;opacity:.75;margin-top:5px}.quran-cake-wrap{text-align:center;margin:20px auto 10px}.quran-cake{position:relative;width:150px;height:120px;margin:0 auto 15px}.cake-body{position:absolute;left:15px;bottom:10px;width:120px;height:60px;border-radius:12px 12px 18px 18px;background:#d9a6b8}.cake-top{position:absolute;left:10px;bottom:55px;width:130px;height:30px;border-radius:50%;background:#f4d7df}.cake-cream{position:absolute;left:20px;bottom:68px;width:110px;height:20px;border-radius:50%;background:#fff}.cake-candle{position:absolute;left:68px;bottom:82px;width:14px;height:38px;border-radius:5px;background:#ead7a7}.cake-flame{position:absolute;left:67px;bottom:118px;width:16px;height:22px;border-radius:50%;background:#f5b642;animation:flameMove .8s infinite alternate}.cake-flame.blown{display:none}@keyframes flameMove{from{transform:scale(.9) translateY(2px)}to{transform:scale(1.1) translateY(-2px)}}.blow-btn{border:0;border-radius:14px;padding:12px 22px;background:var(--pink);color:white;font-weight:bold}.quran-celebration-text{margin-bottom:10px;font-size:14px}
+@media(max-width:700px){.quran-settings{grid-template-columns:1fr}.quran-stats{grid-template-columns:1fr}.quran-day{grid-template-columns:1fr auto}.quran-type{text-align:left}}
+@media(max-width:430px){.nav{grid-template-columns:1fr}.quran-main{grid-column:1/-1}}
+</style>
+</head>
+
+<body>
+
+<!-- Welcome -->
+
+<section id="welcome" class="welcome">
+
+  <div class="welcome-card">
+
+    <h1>Welcome</h1>
+
+    <p>
+      Organize your day and keep track of your tasks easily.
+    </p>
+
+    <button id="welcomeNext" class="primary-btn">
+      Continue
+    </button>
+
+    <div id="nameStep" class="hidden">
+
+      <p>
+        Enter your name to personalize your planner.
+      </p>
+
+      <input
+        id="nameInput"
+        type="text"
+        maxlength="40"
+        placeholder="Enter your name"
+        autocomplete="name"
+      >
+
+      <button id="startBtn" class="primary-btn">
+        Save Name & Start
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<main class="page">
+
+<div class="top-space"></div>
+
+<header class="header">
+
+  <div class="greeting">
+
+    <span id="helloName">
+      Welcome
+    </span>
+
+    <small>
+      Your organized day starts here
+    </small>
+
+  </div>
+
+  <button id="resetName" class="small-btn">
+    Change Name
+  </button>
+
+</header>
+
+
+<!-- Navigation -->
+
+<nav class="nav" aria-label="Application sections">
+
+  <button class="nav-btn active" data-page="todo">
+
+    To-Do List
+
+    <span>
+      Daily tasks
+    </span>
+
+  </button>
+
+
+  <button class="nav-btn" data-page="prayer">
+
+    Prayer
+
+    <span>
+      Weekly tracking
+    </span>
+
+  </button>
+
+  <button class="nav-btn" data-page="quran">
+
+    Quran Memorization
+
+    <span>
+      12-month plan
+    </span>
+
+  </button>
+
+</nav>
+
+
+<!-- To-Do -->
+
+<section id="todoPage" class="app-page">
+
+  <div class="panel">
+
+    <h2 class="panel-title">
+      To-Do List
+    </h2>
+
+    <p class="panel-subtitle">
+      Add your daily tasks and track your progress.
+    </p>
+
+
+    <div class="controls">
+
+      <input
+        id="date"
+        class="date"
+        type="date"
+      >
+
+      <input
+        id="taskInput"
+        class="task-input"
+        maxlength="120"
+        placeholder="Write a task..."
+      >
+
+      <button id="addTask" class="add">
+        Add
+      </button>
+
+    </div>
+
+
+    <div class="progress-wrap">
+
+      <div class="progress-top">
+
+        <span id="progressText">
+          0 / 0 completed
+        </span>
+
+        <span id="progressPercent">
+          0%
+        </span>
+
+      </div>
+
+      <div class="bar">
+
+        <div id="fill" class="fill"></div>
+
+      </div>
+
+    </div>
+
+
+    <section id="tasks" class="tasks"></section>
+
+  </div>
+
+
+  <!-- Reminder -->
+
+  <div class="panel">
+
+    <h2 class="panel-title">
+      Task Reminder
+    </h2>
+
+    <p class="panel-subtitle">
+      Enable a daily reminder for your tasks.
+    </p>
+
+    <div class="reminder-box">
+
+      <input
+        id="reminderEnabled"
+        type="checkbox"
+      >
+
+      <label for="reminderEnabled">
+        Enable task reminder
+      </label>
+
+      <input
+        id="reminderTime"
+        type="time"
+        value="09:00"
+      >
+
+    </div>
+
+    <p id="reminderStatus" class="panel-subtitle"></p>
+
+  </div>
+
+</section>
+
+
+<!-- Prayer -->
+
+<section id="prayerPage" class="app-page hidden">
+
+  <div class="panel">
+
+    <h2 class="panel-title">
+      Prayer Tracker
+    </h2>
+
+    <p class="panel-subtitle">
+      Track your five daily prayers throughout the week.
+    </p>
+
+
+    <div class="prayer-tools">
+
+      <button id="prevWeek" class="small-btn">
+        Previous Week
+      </button>
+
+      <div id="weekLabel" class="week-label"></div>
+
+      <button id="nextWeek" class="small-btn">
+        Next Week
+      </button>
+
+      <button id="currentWeek" class="small-btn">
+        This Week
+      </button>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+      <table class="prayer-table">
+
+        <thead>
+
+          <tr id="prayerHead"></tr>
+
+        </thead>
+
+        <tbody id="prayerBody"></tbody>
+
+      </table>
+
+    </div>
+
+
+    <div id="prayerSummary" class="prayer-summary">
+      0 / 35 prayers completed this week
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- Quran -->
+<section id="quranPage" class="app-page hidden">
+  <div class="panel">
+    <h2 class="panel-title">Quran Memorization</h2>
+    <p class="panel-subtitle">Choose your start date and build your 12-month plan. The default target is 2 pages per memorization day.</p>
+    <div class="quran-settings">
+      <div class="quran-field"><label for="quranStartDate">Start Date</label><input id="quranStartDate" type="date"></div>
+      <div class="quran-field"><label for="quranDirection">Memorization Direction</label><select id="quranDirection"><option value="forward">Al-Fatihah → An-Nas</option><option value="reverse">An-Nas → Al-Fatihah</option></select></div>
+      <div class="quran-field"><label for="quranDailyPages">Pages Per Memorization Day</label><select id="quranDailyPages"><option value="2">2 pages</option><option value="3">3 pages</option><option value="4">4 pages</option></select></div>
+      <button id="generateQuranPlan" class="primary-btn" type="button">Generate Plan</button>
+    </div>
+    <p class="panel-subtitle quran-rule">Each memorization page unlocks separately. There is at least 1 hour between consecutive pages of the same day.</p>
+    <div class="quran-progress-card">
+      <div class="quran-progress-top"><span id="quranProgressText">0 / 604 pages</span><span id="quranProgressPercent">0%</span></div>
+      <div class="quran-bar"><div id="quranProgressFill" class="quran-fill"></div></div>
+      <div class="quran-stats">
+        <div class="quran-stat"><strong id="quranHizbText">0 / 60</strong><span>Hizb Progress</span></div>
+        <div class="quran-stat"><strong id="quranDaysText">0</strong><span>Completed Days</span></div>
+        <div class="quran-stat"><strong>604</strong><span>Total Pages</span></div>
+      </div>
+    </div>
+    <div id="quranPlanContainer"><div class="quran-empty">Choose a start date and press <strong>Generate Plan</strong>.</div></div>
+  </div>
+</section>
+
+</main>
+
+
+<!-- Celebration -->
+
+<section id="celebration" class="celebration hidden">
+
+  <div class="celebration-card">
+
+    <div id="confetti" class="confetti"></div>
+
+    <h2 id="celebrationTitle">
+      Great Job!
+    </h2>
+
+    <p id="celebrationMessage"></p>
+
+    <button id="closeCelebration" class="close-celebration">
+      Close
+    </button>
+
+  </div>
+
+</section>
+
+
+<div id="toast" class="toast"></div>
+
+
+<script>
+"use strict";
+
+
+/* ================= Storage ================= */
+
+const KEYS = {
+  name:"plannerNameV2",
+  tasks:"plannerTasksV2",
+  prayers:"plannerPrayersV2",
+  date:"plannerDateV2",
+  reminder:"plannerReminderV2",
+  lastActive:"plannerLastActiveV1"
+};
+
+
+const $ = id => document.getElementById(id);
+
+
+function load(key,fallback) {
+
+  try {
+
+    const value = localStorage.getItem(key);
+
+    return value === null
+      ? fallback
+      : JSON.parse(value);
+
+  } catch {
+
+    return fallback;
+
+  }
+
+}
+
+
+function save(key,value) {
+
+  localStorage.setItem(
+    key,
+    JSON.stringify(value)
+  );
+
+}
+
+
+function todayString() {
+
+  return formatDate(new Date());
+
+}
+
+
+function formatDate(d) {
+
+  const y = d.getFullYear();
+
+  const m =
+    String(d.getMonth()+1)
+    .padStart(2,"0");
+
+  const day =
+    String(d.getDate())
+    .padStart(2,"0");
+
+  return `${y}-${m}-${day}`;
+
+}
+
+
+function addDays(date,days) {
+
+  const d = new Date(date);
+
+  d.setDate(d.getDate()+days);
+
+  return d;
+
+}
+
+
+function getMonday(date) {
+
+  const d = new Date(date);
+
+  const day = d.getDay();
+
+  d.setDate(
+    d.getDate() +
+    (day === 0 ? -6 : 1-day)
+  );
+
+  d.setHours(0,0,0,0);
+
+  return d;
+
+}
+
+
+function showToast(message) {
+
+  $("toast").textContent = message;
+
+  $("toast").classList.add("show");
+
+  setTimeout(() => {
+
+    $("toast").classList.remove("show");
+
+  },1800);
+
+}
+
+
+/* ================= Data ================= */
+
+let tasks =
+  load(KEYS.tasks,[]);
+
+let prayers =
+  load(KEYS.prayers,{});
+
+let userName =
+  localStorage.getItem(KEYS.name) || "";
+
+let selectedDate =
+  localStorage.getItem(KEYS.date) ||
+  todayString();
+
+let currentWeekStart =
+  getMonday(new Date());
+
+let lastTaskCelebration = "";
+let lastPrayerCelebration = "";
+let celebrationTimer = null;
+
+
+/* ================= Welcome ================= */
+
+function setupWelcome() {
+
+  if(userName) {
+    $("welcome").classList.add("hidden");
+    $("nameStep").classList.add("hidden");
+    return;
+  }
+
+  $("welcome").classList.remove("hidden");
+  $("nameStep").classList.add("hidden");
+
+}
+
+
+$("welcomeNext").addEventListener(
+  "click",
+  () => {
+
+    $("welcomeNext")
+      .classList.add("hidden");
+
+    $("nameStep")
+      .classList.remove("hidden");
+
+    $("nameInput").focus();
+
+  }
+);
+
+
+$("startBtn").addEventListener(
+  "click",
+  () => {
+
+    const name =
+      $("nameInput")
+      .value
+      .trim();
+
+    if(!name) {
+
+      showToast(
+        "Please enter your name first."
+      );
+
+      return;
+
+    }
+
+    userName = name;
+
+    localStorage.setItem(
+      KEYS.name,
+      userName
+    );
+
+    $("helloName").textContent =
+      "Hello " + userName;
+
+    $("welcome")
+      .classList.add("hidden");
+
+  }
+);
+
+
+$("resetName").addEventListener(
+  "click",
+  () => {
+
+    $("nameInput").value =
+      userName;
+
+    $("welcomeNext")
+      .classList.add("hidden");
+
+    $("nameStep")
+      .classList.remove("hidden");
+
+    $("welcome")
+      .classList.remove("hidden");
+
+  }
+);
+
+
+/* ================= Navigation ================= */
+
+document
+  .querySelectorAll(".nav-btn")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const page =
+          button.dataset.page;
+
+        document
+          .querySelectorAll(".nav-btn")
+          .forEach(btn => {
+
+            btn.classList.toggle(
+              "active",
+              btn === button
+            );
+
+          });
+
+
+        $("todoPage")
+          .classList.toggle(
+            "hidden",
+            page !== "todo"
+          );
+
+
+        $("prayerPage")
+          .classList.toggle(
+            "hidden",
+            page !== "prayer"
+          );
+
+        $("quranPage")
+          .classList.toggle(
+            "hidden",
+            page !== "quran"
+          );
+
+        if(page === "quran") renderQuran();
+
+      }
+    );
+
+  });
+
+
+/* ================= To-Do List ================= */
+
+$("date").value =
+  selectedDate;
+
+
+$("date").addEventListener(
+  "change",
+  () => {
+
+    selectedDate =
+      $("date").value ||
+      todayString();
+
+    localStorage.setItem(
+      KEYS.date,
+      selectedDate
+    );
+
+    renderTasks();
+
+  }
+);
+
+
+function renderTasks() {
+
+  const container =
+    $("tasks");
+
+  container.innerHTML = "";
+
+
+  const visible =
+    tasks.filter(
+      task =>
+        task.date === selectedDate
+    );
+
+
+  if(!visible.length) {
+
+    container.innerHTML =
+      '<div class="empty">No tasks for this day.</div>';
+
+  }
+
+
+  visible.forEach(
+    (task,index) => {
+
+      const realIndex =
+        tasks.indexOf(task);
+
+
+      const row =
+        document.createElement("article");
+
+      row.className =
+        "task" +
+        (task.done ? " done" : "");
+
+
+      const num =
+        document.createElement("div");
+
+      num.className = "num";
+
+      num.textContent =
+        index + 1;
+
+
+      const main =
+        document.createElement("div");
+
+      main.className =
+        "task-main";
+
+
+      const check =
+        document.createElement("input");
+
+      check.type = "checkbox";
+
+      check.className = "check";
+
+      check.checked =
+        !!task.done;
+
+      check.setAttribute(
+        "aria-label",
+        "Complete task"
+      );
+
+
+      const text =
+        document.createElement("input");
+
+      text.type = "text";
+
+      text.className = "text";
+
+      text.maxLength = 120;
+
+      text.value =
+        task.text;
+
+      text.placeholder =
+        "Task...";
+
+
+      const del =
+        document.createElement("button");
+
+      del.className = "delete";
+
+      del.type = "button";
+
+      del.textContent = "×";
+
+      del.title =
+        "Delete task";
+
+
+      check.addEventListener(
+        "change",
+        () => {
+
+          task.done =
+            check.checked;
+
+          save(
+            KEYS.tasks,
+            tasks
+          );
+
+          renderTasks();
+
+          if(task.done) {
+
+            checkAllTasks();
+
+          }
+
+        }
+      );
+
+
+      text.addEventListener(
+        "input",
+        () => {
+
+          task.text =
+            text.value;
+
+          save(
+            KEYS.tasks,
+            tasks
+          );
+
+        }
+      );
+
+
+      del.addEventListener(
+        "click",
+        () => {
+
+          tasks.splice(
+            realIndex,
+            1
+          );
+
+          save(
+            KEYS.tasks,
+            tasks
+          );
+
+          renderTasks();
+
+        }
+      );
+
+
+      main.append(
+        check,
+        text
+      );
+
+      row.append(
+        num,
+        main,
+        del
+      );
+
+      container.append(row);
+
+    }
+  );
+
+
+  const completed =
+    visible.filter(
+      task => task.done
+    ).length;
+
+  const total =
+    visible.length;
+
+  const percent =
+    total
+      ? Math.round(
+          completed / total * 100
+        )
+      : 0;
+
+
+  $("progressText").textContent =
+    `${completed} / ${total} completed`;
+
+  $("progressPercent").textContent =
+    percent + "%";
+
+  $("fill").style.width =
+    percent + "%";
+
+}
+
+
+function addTask() {
+
+  const value =
+    $("taskInput")
+    .value
+    .trim();
+
+
+  if(!value) {
+
+    showToast(
+      "Please write a task first."
+    );
+
+    return;
+
+  }
+
+
+  tasks.push({
+
+    id:Date.now(),
+
+    text:value,
+
+    done:false,
+
+    date:selectedDate
+
+  });
+
+
+  $("taskInput").value = "";
+
+  save(
+    KEYS.tasks,
+    tasks
+  );
+
+  renderTasks();
+
+  $("taskInput").focus();
+
+}
+
+
+$("addTask").addEventListener(
+  "click",
+  addTask
+);
+
+
+$("taskInput").addEventListener(
+  "keydown",
+  e => {
+
+    if(e.key === "Enter") {
+
+      addTask();
+
+    }
+
+  }
+);
+
+
+function checkAllTasks() {
+
+  const visible =
+    tasks.filter(
+      task =>
+        task.date === selectedDate
+    );
+
+
+  if(
+    visible.length > 0 &&
+    visible.every(
+      task => task.done
+    ) &&
+    lastTaskCelebration !== selectedDate
+  ) {
+
+    lastTaskCelebration =
+      selectedDate;
+
+
+    showCelebration(
+      "Great Job!",
+      `Amazing ${userName || ""}, you completed all your tasks for today.`
+    );
+
+  }
+
+}
+
+
+/* ================= Prayer ================= */
+
+const days = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday"
+];
+
+
+const prayerNames = [
+  "Fajr",
+  "Dhuhr",
+  "Asr",
+  "Maghrib",
+  "Isha"
+];
+
+
+function prayerKey(
+  date,
+  prayer
+) {
+
+  return (
+    formatDate(date) +
+    "_" +
+    prayer
+  );
+
+}
+
+
+function isPrayerDone(
+  date,
+  prayer
+) {
+
+  return !!prayers[
+    prayerKey(date,prayer)
+  ];
+
+}
+
+
+function setPrayer(
+  date,
+  prayer,
+  value
+) {
+
+  const key =
+    prayerKey(
+      date,
+      prayer
+    );
+
+
+  if(value) {
+
+    prayers[key] = true;
+
+  } else {
+
+    delete prayers[key];
+
+  }
+
+
+  save(
+    KEYS.prayers,
+    prayers
+  );
+
+}
+
+
+function renderPrayerTable() {
+
+  const head =
+    $("prayerHead");
+
+  const body =
+    $("prayerBody");
+
+
+  head.innerHTML = "";
+
+  body.innerHTML = "";
+
+
+  const first =
+    document.createElement("th");
+
+  first.textContent =
+    "Prayer";
+
+  head.append(first);
+
+
+  for(let i=0;i<7;i++) {
+
+    const date =
+      addDays(
+        currentWeekStart,
+        i
+      );
+
+
+    const th =
+      document.createElement("th");
+
+
+    th.innerHTML =
+      days[i] +
+      "<br>" +
+      `<small>${date.getDate()}/${date.getMonth()+1}</small>`;
+
+
+    if(
+      formatDate(date) ===
+      todayString()
+    ) {
+
+      th.classList.add(
+        "today"
+      );
+
+    }
+
+
+    head.append(th);
+
+  }
+
+
+  prayerNames.forEach(
+    prayer => {
+
+      const tr =
+        document.createElement("tr");
+
+
+      const label =
+        document.createElement("td");
+
+      label.textContent =
+        prayer;
+
+      tr.append(label);
+
+
+      for(let i=0;i<7;i++) {
+
+        const date =
+          addDays(
+            currentWeekStart,
+            i
+          );
+
+
+        const td =
+          document.createElement("td");
+
+
+        if(
+          formatDate(date) ===
+          todayString()
+        ) {
+
+          td.classList.add(
+            "today"
+          );
+
+        }
+
+
+        const check =
+          document.createElement("input");
+
+        check.type =
+          "checkbox";
+
+        check.className =
+          "prayer-check";
+
+        check.checked =
+          isPrayerDone(
+            date,
+            prayer
+          );
+
+
+        check.setAttribute(
+          "aria-label",
+          prayer + " " + days[i]
+        );
+
+
+        check.addEventListener(
+          "change",
+          () => {
+
+            setPrayer(
+              date,
+              prayer,
+              check.checked
+            );
+
+            renderPrayerTable();
+
+
+            if(check.checked) {
+
+              checkPrayerDay(
+                date
+              );
+
+            }
+
+          }
+        );
+
+
+        td.append(check);
+
+        tr.append(td);
+
+      }
+
+
+      body.append(tr);
+
+    }
+  );
+
+
+  updatePrayerSummary();
+
+  updateWeekLabel();
+
+}
+
+
+function updateWeekLabel() {
+
+  const end =
+    addDays(
+      currentWeekStart,
+      6
+    );
+
+
+  $("weekLabel").textContent =
+    `${currentWeekStart.getDate()}/${currentWeekStart.getMonth()+1}` +
+    ` — ` +
+    `${end.getDate()}/${end.getMonth()+1}`;
+
+}
+
+
+function updatePrayerSummary() {
+
+  let completed = 0;
+
+
+  for(let i=0;i<7;i++) {
+
+    const date =
+      addDays(
+        currentWeekStart,
+        i
+      );
+
+
+    prayerNames.forEach(
+      prayer => {
+
+        if(
+          isPrayerDone(
+            date,
+            prayer
+          )
+        ) {
+
+          completed++;
+
+        }
+
+      }
+    );
+
+  }
+
+
+  $("prayerSummary").textContent =
+    `${completed} / 35 prayers completed this week`;
+
+}
+
+
+function checkPrayerDay(date) {
+
+  const key =
+    formatDate(date);
+
+
+  const complete =
+    prayerNames.every(
+      prayer =>
+        isPrayerDone(
+          date,
+          prayer
+        )
+    );
+
+
+  if(
+    complete &&
+    lastPrayerCelebration !== key
+  ) {
+
+    lastPrayerCelebration =
+      key;
+
+
+    showCelebration(
+      "Alhamdulillah",
+      "All five prayers for today are completed. May Allah accept them from you."
+    );
+
+  }
+
+}
+
+
+$("prevWeek").addEventListener(
+  "click",
+  () => {
+
+    currentWeekStart =
+      addDays(
+        currentWeekStart,
+        -7
+      );
+
+    renderPrayerTable();
+
+  }
+);
+
+
+$("nextWeek").addEventListener(
+  "click",
+  () => {
+
+    currentWeekStart =
+      addDays(
+        currentWeekStart,
+        7
+      );
+
+    renderPrayerTable();
+
+  }
+);
+
+
+$("currentWeek").addEventListener(
+  "click",
+  () => {
+
+    currentWeekStart =
+      getMonday(
+        new Date()
+      );
+
+    renderPrayerTable();
+
+  }
+);
+
+
+/* ================= Quran Memorization ================= */
+const QURAN_STORAGE_KEY="plannerQuranV2", QURAN_TOTAL_PAGES=604, QURAN_PAGE_GAP_MS=60*60*1000;
+const quranSurahStarts=[[1,"Al-Fatihah"],[2,"Al-Baqarah"],[50,"Aal-Imran"],[77,"An-Nisa"],[106,"Al-Ma'idah"],[128,"Al-An'am"],[151,"Al-A'raf"],[177,"Al-Anfal"],[187,"At-Tawbah"],[208,"Yunus"],[221,"Hud"],[235,"Yusuf"],[249,"Ar-Ra'd"],[255,"Ibrahim"],[262,"Al-Hijr"],[267,"An-Nahl"],[282,"Al-Isra"],[293,"Al-Kahf"],[305,"Maryam"],[312,"Ta-Ha"],[322,"Al-Anbiya"],[332,"Al-Hajj"],[342,"Al-Mu'minun"],[350,"An-Nur"],[359,"Al-Furqan"],[367,"Ash-Shu'ara"],[377,"An-Naml"],[385,"Al-Qasas"],[396,"Al-Ankabut"],[404,"Ar-Rum"],[411,"Luqman"],[415,"As-Sajdah"],[418,"Al-Ahzab"],[428,"Saba"],[434,"Fatir"],[440,"Ya-Sin"],[446,"As-Saffat"],[453,"Sad"],[458,"Az-Zumar"],[467,"Ghafir"],[477,"Fussilat"],[483,"Ash-Shura"],[489,"Az-Zukhruf"],[496,"Ad-Dukhan"],[499,"Al-Jathiyah"],[502,"Al-Ahqaf"],[507,"Muhammad"],[511,"Al-Fath"],[515,"Al-Hujurat"],[517,"Qaf"],[519,"Adh-Dhariyat"],[522,"At-Tur"],[525,"An-Najm"],[527,"Al-Qamar"],[529,"Ar-Rahman"],[532,"Al-Waqi'ah"],[534,"Al-Hadid"],[537,"Al-Mujadilah"],[542,"Al-Hashr"],[545,"Al-Mumtahanah"],[549,"As-Saff"],[551,"Al-Jumu'ah"],[553,"Al-Munafiqun"],[554,"At-Taghabun"],[556,"At-Talaq"],[558,"At-Tahrim"],[560,"Al-Mulk"],[562,"Al-Qalam"],[564,"Al-Haqqah"],[566,"Al-Ma'arij"],[568,"Nuh"],[570,"Al-Jinn"],[572,"Al-Muzzammil"],[573,"Al-Muddaththir"],[575,"Al-Qiyamah"],[576,"Al-Insan"],[578,"Al-Mursalat"],[580,"An-Naba"],[582,"An-Nazi'at"],[583,"Abasa"],[585,"At-Takwir"],[586,"Al-Infitar"],[587,"Al-Mutaffifin"],[589,"Al-Inshiqaq"],[590,"Al-Buruj"],[591,"At-Tariq"],[592,"Al-A'la"],[592,"Al-Ghashiyah"],[593,"Al-Fajr"],[594,"Al-Balad"],[595,"Ash-Shams"],[595,"Al-Layl"],[596,"Ad-Duha"],[596,"Ash-Sharh"],[597,"At-Tin"],[597,"Al-Alaq"],[598,"Al-Qadr"],[598,"Al-Bayyinah"],[599,"Az-Zalzalah"],[599,"Al-Adiyat"],[600,"Al-Qari'ah"],[600,"At-Takathur"],[601,"Al-Asr"],[601,"Al-Humazah"],[601,"Al-Fil"],[602,"Quraysh"],[602,"Al-Ma'un"],[602,"Al-Kawthar"],[603,"Al-Kafirun"],[603,"An-Nasr"],[603,"Al-Masad"],[604,"Al-Ikhlas"],[604,"Al-Falaq"],[604,"An-Nas"]];
+let quranState=load(QURAN_STORAGE_KEY,null);
+function quranAddDays(ds,n){const d=new Date(ds+"T00:00:00");d.setDate(d.getDate()+n);return formatDate(d)}
+function quranAddMonths(ds,n){const d=new Date(ds+"T00:00:00");d.setMonth(d.getMonth()+n);return formatDate(d)}
+function quranSurah(page){let name=quranSurahStarts[0][1];for(const x of quranSurahStarts){if(page>=x[0])name=x[1];else break}return name}
+function quranMonthLabel(ds){return new Date(ds+"T00:00:00").toLocaleDateString("en-US",{month:"long",year:"numeric"})}
+function quranDayLabel(ds){return new Date(ds+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}
+function generateQuranTasks(start,daily,direction){
+  const tasks=[];let date=start;let memDays=0;let page=direction==="reverse"?604:1;let step=direction==="reverse"?-1:1;const end=quranAddMonths(start,12);
+  while(date<end){
+    if((direction==="forward"&&page<=604)||(direction==="reverse"&&page>=1)){
+      if(memDays>0&&memDays%6===0){
+        const reviewStart=direction==="forward"?Math.max(1,page-daily*6):Math.min(604,page+daily*6);
+        const reviewEnd=direction==="forward"?page-1:page+1;
+        tasks.push({id:"quran-"+date,date,type:"review",reviewStart,reviewEnd,done:false});
+      }else{
+        const pages=[];
+        for(let i=0;i<daily;i++){
+          if((direction==="forward"&&page>604)||(direction==="reverse"&&page<1))break;
+          pages.push({page,surah:quranSurah(page),done:false,completedAt:null});page+=step;
+        }
+        if(pages.length){tasks.push({id:"quran-"+date,date,type:"memorize",pages,done:false});memDays++;}
+      }
+    }else{tasks.push({id:"quran-"+date,date,type:"full-review",done:false})}
+    date=quranAddDays(date,1);
+  }
+  return tasks;
+}
+function saveQuran(){save(QURAN_STORAGE_KEY,quranState)}
+function quranCompletedPages(){return quranState?.tasks?quranState.tasks.reduce((n,t)=>n+(t.type==="memorize"?t.pages.filter(p=>p.done).length:0),0):0}
+function updateQuranProgress(){const p=Math.min(604,quranCompletedPages()),pct=Math.round(p/604*100),h=Math.min(60,Math.floor(p/(604/60))),d=quranState?.tasks?.filter(t=>t.type!=="memorize"?t.done:t.pages.every(x=>x.done)).length||0;if($("quranProgressText"))$("quranProgressText").textContent=`${p} / 604 pages`;if($("quranProgressPercent"))$("quranProgressPercent").textContent=pct+"%";if($("quranProgressFill"))$("quranProgressFill").style.width=pct+"%";if($("quranHizbText"))$("quranHizbText").textContent=`${h} / 60`;if($("quranDaysText"))$("quranDaysText").textContent=d}
+function quranPageLocked(task,index){
+  if(task.date>todayString())return true;
+  if(task.type!=="memorize"||index===0)return false;
+  const previous=task.pages[index-1];
+  return !previous.done || !previous.completedAt || (Date.now()-previous.completedAt)<QURAN_PAGE_GAP_MS;
+}
+function quranUnlockText(task,index){
+  if(task.type!=="memorize"||index===0)return "";
+  const previous=task.pages[index-1];
+  if(!previous.done||!previous.completedAt)return "Complete the previous page first.";
+  const left=QURAN_PAGE_GAP_MS-(Date.now()-previous.completedAt);
+  if(left>0){const mins=Math.ceil(left/60000);return `Unlocks in about ${mins} min.`}
+  return "Ready to memorize.";
+}
+function renderQuran(){
+  const c=$("quranPlanContainer");if(!c)return;if(!quranState?.tasks){c.innerHTML='<div class="quran-empty">Choose a start date, direction, and daily pages, then press <strong>Generate Plan</strong>.</div>';updateQuranProgress();return}
+  const today=todayString(),groups={};quranState.tasks.forEach(t=>{const m=t.date.slice(0,7);(groups[m]??=[]).push(t)});let html="";
+  Object.values(groups).forEach(g=>{html+=`<div class="quran-month"><div class="quran-month-title">${quranMonthLabel(g[0].date)}</div>`;g.forEach(t=>{
+    if(t.type==="memorize"){
+      html+=`<div class="quran-day ${t.date>today?"locked":""}"><div class="quran-date">${quranDayLabel(t.date)}</div><div class="quran-main"><strong>${quranState.direction==="reverse"?"An-Nas → Al-Fatihah":"Al-Fatihah → An-Nas"}</strong>`;
+      t.pages.forEach((p,i)=>{const locked=quranPageLocked(t,i);html+=`<div style="margin-top:8px;padding-top:7px;border-top:1px dashed #efb7c1"><span><strong>Page ${p.page}</strong> · ${p.surah}</span><span class="quran-unlock">${i===0?"First page of today.":quranUnlockText(t,i)}</span></div>`;});
+      html+=`</div><div class="quran-type">${t.pages.length} page${t.pages.length===1?"":"s"}</div><div style="display:flex;flex-direction:column;gap:12px;align-items:center">`;
+      t.pages.forEach((p,i)=>{const locked=quranPageLocked(t,i);html+=`<input class="quran-check" type="checkbox" ${p.done?"checked":""} ${locked?"disabled":""} aria-label="Complete Quran page ${p.page}" onchange="toggleQuranPage('${t.id}',${i})">`});
+      html+=`</div></div>`;
+    }else if(t.type==="review"){const locked=t.date>today;html+=`<div class="quran-day review-day ${locked?"locked":""}"><div class="quran-date">${quranDayLabel(t.date)}</div><div class="quran-main"><strong>Revision Day</strong><span>Review Pages ${t.reviewStart}–${t.reviewEnd}</span></div><div class="quran-type">Review</div><input class="quran-check" type="checkbox" ${t.done?"checked":""} ${locked?"disabled":""} onchange="toggleQuranReview('${t.id}')"></div>`;
+    }else{const locked=t.date>today;html+=`<div class="quran-day review-day ${locked?"locked":""}"><div class="quran-date">${quranDayLabel(t.date)}</div><div class="quran-main"><strong>Full Quran Review</strong><span>Review and strengthen your memorized pages.</span></div><div class="quran-type">Revision</div><input class="quran-check" type="checkbox" ${t.done?"checked":""} ${locked?"disabled":""} onchange="toggleQuranReview('${t.id}')"></div>`}
+  });html+="</div>"});c.innerHTML=html;updateQuranProgress()}
+function toggleQuranPage(id,index){const t=quranState?.tasks?.find(x=>x.id===id);if(!t||t.type!=="memorize"||!t.pages[index])return;if(quranPageLocked(t,index)){showToast(quranUnlockText(t,index)||"This page is locked.");return}const p=t.pages[index];p.done=!p.done;p.completedAt=p.done?Date.now():null;t.done=t.pages.every(x=>x.done);saveQuran();renderQuran();if(p.done)checkQuranHizb()}
+function toggleQuranReview(id){const t=quranState?.tasks?.find(x=>x.id===id);if(!t)return;if(t.date>todayString()){showToast("This revision day is not unlocked yet.");return}t.done=!t.done;saveQuran();renderQuran()}
+function checkQuranHizb(){const p=quranCompletedPages(),h=Math.floor(p/(604/60)),last=quranState.lastCelebratedHizb||0;if(h>last){quranState.lastCelebratedHizb=h;saveQuran();showQuranHizbCelebration(h)}}
+function showQuranHizbCelebration(h){$("celebrationTitle").textContent=`Hizb ${h} Completed!`;$("celebrationMessage").textContent="Congratulations! You completed another part of your Quran journey.";makeConfetti();let cake=$("quranCelebrationCake");if(!cake){cake=document.createElement("div");cake.id="quranCelebrationCake";cake.className="quran-cake-wrap";cake.innerHTML=`<div class="quran-cake"><div class="cake-body"></div><div class="cake-top"></div><div class="cake-cream"></div><div class="cake-candle"></div><div id="quranCakeFlame" class="cake-flame"></div></div><div class="quran-celebration-text">Your candle is waiting.</div><button type="button" class="blow-btn" id="blowQuranCandle">Blow Out Candle</button>`;$("closeCelebration").before(cake);$("blowQuranCandle").addEventListener("click",blowQuranCandle)}cake.style.display="block";$("quranCakeFlame").classList.remove("blown");$("blowQuranCandle").style.display="inline-block";$("celebration").classList.remove("hidden");clearTimeout(celebrationTimer);celebrationTimer=setTimeout(closeCelebration,60000)}
+function blowQuranCandle(){$("quranCakeFlame").classList.add("blown");$("blowQuranCandle").style.display="none";$("quranCelebrationCake").querySelector(".quran-celebration-text").textContent="Beautiful! Keep going with your Quran journey.";makeConfetti()}
+function setupQuran(){const start=$("quranStartDate"),pages=$("quranDailyPages"),direction=$("quranDirection"),btn=$("generateQuranPlan");if(!start||!pages||!direction||!btn)return;start.value=quranState?.startDate||todayString();pages.value=String(quranState?.dailyPages||2);direction.value=quranState?.direction||"forward";btn.addEventListener("click",()=>{if(!start.value){showToast("Please choose your start date.");return}if(quranState?.tasks?.some(t=>t.done)||quranState?.tasks?.some(t=>t.type==="memorize"&&t.pages?.some(p=>p.done))){if(!confirm("Changing the plan will reset your Quran progress. Continue?"))return}quranState={startDate:start.value,dailyPages:Number(pages.value),direction:direction.value,tasks:generateQuranTasks(start.value,Number(pages.value),direction.value),lastCelebratedHizb:0};saveQuran();renderQuran();showToast("Your Quran plan has been created.")});renderQuran();setInterval(renderQuran,60000)}
+
+/* ================= Celebration ================= */
+
+function makeConfetti() {
+
+  const box =
+    $("confetti");
+
+  box.innerHTML = "";
+
+
+  for(let i=0;i<70;i++) {
+
+    const piece =
+      document.createElement("span");
+
+    piece.className =
+      "confetti-piece";
+
+
+    piece.style.left =
+      Math.random()*100 + "%";
+
+
+    piece.style.animationDelay =
+      Math.random()*2 + "s";
+
+
+    piece.style.background =
+      [
+        "#e78da8",
+        "#f2bd78",
+        "#b98b70",
+        "#82a88b"
+      ][
+        Math.floor(
+          Math.random()*4
+        )
+      ];
+
+
+    box.append(piece);
+
+  }
+
+}
+
+
+function showCelebration(
+  title,
+  message
+) {
+
+  $("celebrationTitle")
+    .textContent = title;
+
+  $("celebrationMessage")
+    .textContent = message;
+
+
+  makeConfetti();
+
+
+  $("celebration")
+    .classList.remove(
+      "hidden"
+    );
+
+
+  clearTimeout(
+    celebrationTimer
+  );
+
+
+  celebrationTimer =
+    setTimeout(
+      () => {
+        closeCelebration();
+      },
+      60000
+    );
+
+}
+
+
+function closeCelebration() {
+
+  const cake=$("quranCelebrationCake");
+  if(cake) cake.style.display="none";
+
+  $("celebration")
+    .classList.add(
+      "hidden"
+    );
+
+  clearTimeout(
+    celebrationTimer
+  );
+
+}
+
+
+$("closeCelebration")
+  .addEventListener(
+    "click",
+    closeCelebration
+  );
+
+
+/* ================= Reminder ================= */
+
+let reminder =
+  load(
+    KEYS.reminder,
+    {
+      enabled:false,
+      time:"09:00"
+    }
+  );
+
+
+$("reminderEnabled").checked =
+  reminder.enabled;
+
+$("reminderTime").value =
+  reminder.time;
+
+
+function updateReminderStatus() {
+
+  $("reminderStatus")
+    .textContent =
+      reminder.enabled
+        ? "Reminder is enabled for " +
+          reminder.time + "."
+        : "Reminder is disabled.";
+
+}
+
+
+$("reminderEnabled")
+  .addEventListener(
+    "change",
+    () => {
+
+      reminder.enabled =
+        $("reminderEnabled")
+          .checked;
+
+      save(
+        KEYS.reminder,
+        reminder
+      );
+
+      updateReminderStatus();
+
+    }
+  );
+
+
+$("reminderTime")
+  .addEventListener(
+    "change",
+    () => {
+
+      reminder.time =
+        $("reminderTime").value;
+
+      save(
+        KEYS.reminder,
+        reminder
+      );
+
+      updateReminderStatus();
+
+    }
+  );
+
+
+let lastReminder = "";
+
+
+function checkReminder() {
+
+  if(!reminder.enabled) {
+    return;
+  }
+
+
+  const now =
+    new Date();
+
+
+  const current =
+    String(now.getHours())
+      .padStart(2,"0") +
+    ":" +
+    String(now.getMinutes())
+      .padStart(2,"0");
+
+
+  const date =
+    todayString();
+
+
+  if(
+    current === reminder.time &&
+    lastReminder !== date
+  ) {
+
+    lastReminder = date;
+
+
+    showToast(
+      "Reminder: It's time to review your tasks."
+    );
+
+  }
+
+}
+
+
+/* ================= Return / Motivation ================= */
+function checkInactivity(){
+  const now=Date.now();
+  const previous=Number(localStorage.getItem(KEYS.lastActive)||0);
+  if(previous){
+    const days=Math.floor((now-previous)/86400000);
+    if(days>=3){
+      const message="Don't give up on your goal. Every return is a new step forward.";
+      showToast(message);
+      if("Notification" in window && Notification.permission==="granted") new Notification("Keep going",{body:message});
+    }
+  }
+  localStorage.setItem(KEYS.lastActive,String(now));
+}
+function requestMotivationNotifications(){
+  if("Notification" in window && Notification.permission==="default") Notification.requestPermission().catch(()=>{});
+}
+
+/* ================= Start ================= */
+
+if(userName) {
+
+  $("helloName").textContent =
+    "Hello " + userName;
+
+}
+
+
+setupWelcome();
+checkInactivity();
+
+document.addEventListener("click",requestMotivationNotifications,{once:true});
+
+$("date").value =
+  selectedDate;
+
+
+renderTasks();
+
+renderPrayerTable();
+setupQuran();
+
+updateReminderStatus();
+
+
+setInterval(
+  checkReminder,
+  30000
+);
+
+
+/* Service Worker */
+
+if("serviceWorker" in navigator) {
+
+  window.addEventListener(
+    "load",
+    () => {
+
+      navigator.serviceWorker
+        .register("./sw.js")
+        .catch(() => {});
+
+    }
+  );
+
+}
+
+</script>
+
+</body>
+</html>
